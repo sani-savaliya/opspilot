@@ -1,411 +1,365 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OpsPilot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='12' cy='6' rx='6' ry='2.3'/%3E%3Cpath d='M6 6v5c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3V6'/%3E%3Cpath d='M6 11v5c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3v-5'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #0c0f14;
-    --panel: #131820;
-    --panel-2: #1a212c;
-    --line: #26303d;
-    --ink: #e8edf3;
-    --muted: #8a98ab;
-    --accent: #5ad1a8;     /* mint */
-    --accent-2: #ffb454;   /* amber */
-    --danger: #ff6b6b;
-    --code-bg: #0a0d12;
-    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
-    --sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  :root{
+    --bg:#f6f6f7; --card:#ffffff; --border:#ececee; --border2:#e6e6e8;
+    --ink:#1c1c1f; --ink2:#3a3a40; --muted:#55555d; --faint:#9a9aa2; --faint2:#b0b0b6;
+    --accent:#4f46e5; --accent-dk:#4338ca; --accent-soft:#eef0fe; --accent-bd:#e0e2fb;
+    --good:#1fa463; --good-bg:#f1faf5; --good-bd:#e3f3ea; --good-fg:#15824b;
+    --warnbg:#fff8ed; --warnbd:#f5e3c2; --warnfg:#8a5e12; --warnic:#c47f17;
+    --redbg:#fdeceb; --redfg:#c0473a;
+    --sans:'Geist',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    background:
-      radial-gradient(900px 500px at 12% -10%, rgba(90,209,168,.10), transparent 60%),
-      radial-gradient(800px 500px at 110% 0%, rgba(255,180,84,.07), transparent 55%),
-      var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  header {
-    display: flex; align-items: center; gap: 16px;
-    padding: 14px 22px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(12,15,20,.7);
-    backdrop-filter: blur(8px);
-    position: sticky; top: 0; z-index: 10;
-  }
-  .brand { font-size: 22px; font-weight: 700; letter-spacing: .3px; }
-  .brand .dot { color: var(--accent); }
-  .tagline { color: var(--muted); font-size: 13px; }
-  .pill {
-    margin-left: auto; display: flex; gap: 10px; align-items: center;
-    font-family: var(--mono); font-size: 12px;
-  }
-  .chip {
-    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line);
-    background: var(--panel-2); color: var(--muted);
-    display: inline-flex; align-items: center; gap: 7px;
-  }
-  .chip b { color: var(--ink); font-weight: 600; }
-  .led { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-  .led.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  .led.off { background: #4a5563; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
+       -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  ::selection{background:#e0e2fb;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#dededf;border-radius:8px;border:2px solid var(--bg);}
+  ::-webkit-scrollbar-thumb:hover{background:#cfcfd1;}
+  @keyframes opfade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  a{color:var(--accent);text-decoration:none;}
 
-  main { display: grid; grid-template-columns: 340px 1fr; gap: 0; height: calc(100% - 59px); }
-  @media (max-width: 880px) { main { grid-template-columns: 1fr; height: auto; } }
+  /* header */
+  header{flex:none;height:60px;display:flex;align-items:center;justify-content:space-between;
+         padding:0 24px;background:#fff;border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(150deg,#5b54e8,#4f46e5);
+        display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(79,70,229,.35),inset 0 1px 0 rgba(255,255,255,.25);}
+  .brand .name{font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.1;}
+  .brand .sub{font-size:11.5px;color:var(--faint);font-weight:450;}
+  .hbar{display:flex;align-items:center;gap:10px;}
+  .pill{display:flex;align-items:center;gap:6px;height:30px;padding:0 11px;border:1px solid var(--border);
+        border-radius:8px;background:#fbfbfc;font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .pill b{color:var(--ink);font-weight:500;}
+  .pill.dot-on{border-color:var(--good-bd);background:var(--good-bg);color:var(--good-fg);font-weight:500;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--faint2);}
+  .pill.dot-on .dot{background:var(--good);box-shadow:0 0 0 3px rgba(31,164,99,.16);}
 
-  aside {
-    border-right: 1px solid var(--line);
-    padding: 18px; overflow-y: auto;
-    background: linear-gradient(180deg, rgba(26,33,44,.4), transparent 240px);
-  }
-  .section-h {
-    font-family: var(--mono); font-size: 11px; letter-spacing: 1.4px;
-    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
-  }
+  main{flex:1;display:flex;min-height:0;}
+  /* sidebar */
+  aside{flex:none;width:296px;background:#fff;border-right:1px solid var(--border);overflow-y:auto;padding:20px;}
+  .eyebrow{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;margin-bottom:11px;}
+  .drop{display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;padding:22px 16px;
+        border:1.5px dashed #d6d6da;border-radius:12px;background:#fbfbfc;cursor:pointer;transition:.15s;}
+  .drop:hover,.drop.over{border-color:#b9b7f4;background:#f7f7fe;}
+  .drop .ic{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;}
+  .drop .t{font-size:13.5px;font-weight:500;}
+  .drop .h{font-size:11.5px;color:var(--faint);margin-top:3px;}
+  .imported{display:none;align-items:center;gap:7px;margin-top:12px;padding:8px 10px;background:var(--good-bg);
+            border:1px solid var(--good-bd);border-radius:8px;font-size:12.5px;color:var(--good-fg);}
+  .divider{height:1px;background:#f0f0f1;margin:20px 0;}
+  .tcard{border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px;background:#fff;}
+  .tcard .hd{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#fafafa;border-bottom:1px solid #f0f0f1;}
+  .tcard .hd .nm{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;font-weight:500;}
+  .tcard .hd .mt{font-size:11px;color:var(--faint);white-space:nowrap;}
+  .col{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 13px;}
+  .col .l{display:flex;align-items:baseline;gap:8px;min-width:0;}
+  .col .cn{font-family:var(--mono);font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;}
+  .col .ct{font-family:var(--mono);font-size:10.5px;color:#b4b4ba;}
+  .badge{flex:none;font-size:10.5px;font-weight:500;padding:2px 7px;border-radius:6px;}
+  .badge.null{background:var(--redbg);color:var(--redfg);}
+  .badge.nulllo{background:#fff3df;color:#b9801c;}
+  .badge.const{background:#fff3df;color:#b9801c;}
+  .badge.dupe{background:var(--redbg);color:var(--redfg);}
+  .empty-side{color:var(--faint);font-size:12.5px;}
 
-  .drop {
-    border: 1.5px dashed var(--line); border-radius: 14px;
-    padding: 26px 14px; text-align: center; cursor: pointer;
-    transition: border-color .15s, background .15s, transform .1s;
-    background: var(--panel);
-  }
-  .drop:hover { border-color: var(--accent); }
-  .drop.over { border-color: var(--accent); background: rgba(90,209,168,.07); transform: scale(1.01); }
-  .drop .big { font-size: 15px; }
-  .drop .sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+  /* main column */
+  .pane{flex:1;overflow-y:auto;min-width:0;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 40px 64px;}
+  .qbar{background:#fff;border:1px solid var(--border2);border-radius:14px;padding:7px 7px 7px 16px;
+        display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(20,20,30,.04);}
+  .qbar svg{flex:none;}
+  #q{flex:1;border:none;outline:none;font-family:var(--sans);font-size:15.5px;color:var(--ink);background:transparent;min-width:0;}
+  .btn{flex:none;display:flex;align-items:center;gap:7px;height:40px;padding:0 18px;border:none;border-radius:10px;
+       background:var(--accent);color:#fff;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;
+       transition:background .15s;box-shadow:0 1px 2px rgba(79,70,229,.4);}
+  .btn:hover{background:var(--accent-dk);}
+  .btn:disabled{opacity:.55;cursor:default;}
+  .hint{font-size:12.5px;color:var(--faint);margin:11px 2px 0;}
 
-  .table-card {
-    border: 1px solid var(--line); border-radius: 12px;
-    margin-top: 14px; overflow: hidden; background: var(--panel);
-  }
-  .table-card > summary {
-    list-style: none; cursor: pointer; padding: 11px 13px;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--panel-2);
-  }
-  .table-card > summary::-webkit-details-marker { display: none; }
-  .tname { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 600; }
-  .tmeta { color: var(--muted); font-size: 12px; margin-left: auto; }
-  .cols { padding: 6px 13px 12px; }
-  .col-row {
-    display: flex; align-items: baseline; gap: 8px; padding: 4px 0;
-    border-bottom: 1px dashed rgba(38,48,61,.6);
-  }
-  .col-row:last-child { border-bottom: none; }
-  .col-name { font-family: var(--mono); font-size: 12.5px; }
-  .col-type { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .badges { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; }
-  .badge {
-    font-family: var(--mono); font-size: 10.5px; padding: 2px 7px;
-    border-radius: 6px; border: 1px solid var(--line); color: var(--muted);
-  }
-  .badge.warn { color: var(--accent-2); border-color: rgba(255,180,84,.4); background: rgba(255,180,84,.08); }
-  .badge.bad  { color: var(--danger); border-color: rgba(255,107,107,.4); background: rgba(255,107,107,.08); }
+  .card{background:#fff;border:1px solid var(--border2);border-radius:16px;margin-top:16px;box-shadow:0 1px 3px rgba(20,20,30,.05);animation:opfade .4s ease both;}
+  .answer{padding:26px 28px;}
+  .answer .lbl{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .answer .lbl span{font-size:11px;font-weight:600;letter-spacing:.07em;color:#8a8a92;text-transform:uppercase;}
+  .answer .meta{margin-left:auto;font-size:11.5px;color:var(--faint2);}
+  .answer .body{font-size:16px;line-height:1.6;color:var(--ink);white-space:pre-wrap;}
+  .answer .note{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:7px 11px;background:var(--warnbg);
+        border:1px solid var(--warnbd);border-radius:9px;font-size:12.5px;color:var(--warnfg);}
+  .cite{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;margin:0 1px;
+        font-family:var(--mono);font-size:11px;color:#fff;background:var(--accent);border-radius:6px;}
 
-  .content { padding: 22px 26px; overflow-y: auto; }
-  .ask-wrap { display: flex; gap: 10px; }
-  .ask {
-    flex: 1; font-family: var(--sans); font-size: 16px; color: var(--ink);
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px 16px; outline: none; transition: border-color .15s, box-shadow .15s;
-  }
-  .ask:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(90,209,168,.12); }
-  button.go {
-    font-family: var(--mono); font-size: 14px; font-weight: 600;
-    background: var(--accent); color: #04130d; border: none; border-radius: 12px;
-    padding: 0 22px; cursor: pointer; transition: filter .12s, transform .08s;
-  }
-  button.go:hover { filter: brightness(1.08); }
-  button.go:active { transform: translateY(1px); }
-  button.go:disabled { opacity: .5; cursor: default; }
+  /* chart */
+  .chart{margin-top:22px;padding-top:20px;border-top:1px solid #f0f0f1;}
+  .chart .ct{font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--faint);text-transform:uppercase;margin-bottom:15px;}
+  .row{display:flex;align-items:center;gap:14px;margin-bottom:13px;}
+  .row .lab{flex:none;width:120px;font-size:13px;font-weight:500;color:var(--ink2);text-align:right;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .track{flex:1;height:11px;background:#f2f2f4;border-radius:999px;overflow:hidden;}
+  .row .fill{height:100%;border-radius:999px;transition:width .5s cubic-bezier(.2,.7,.3,1);}
+  .row .val{flex:none;width:90px;font-family:var(--mono);font-size:12.5px;color:var(--muted);}
 
-  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  /* sql card */
+  .sqlhd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;}
+  .sqlhd:hover{background:#fbfbfc;}
+  .sqlhd .l{display:flex;align-items:center;gap:9px;}
+  .sqlhd .chev{transition:transform .2s;}
+  .sqlhd .chev.open{transform:rotate(90deg);}
+  .sqlhd .t{font-size:13px;font-weight:500;color:var(--ink2);}
+  .sqlhd .h{font-size:11px;color:var(--faint2);}
+  .runbtn{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid var(--border2);
+          border-radius:8px;background:#fff;color:var(--ink2);font-family:var(--sans);font-size:12.5px;font-weight:500;cursor:pointer;transition:.15s;}
+  .runbtn:hover{border-color:#cfcfd3;background:#fafafa;}
+  .sqlbody{padding:0 16px 16px;}
+  #sqlBox{width:100%;min-height:120px;resize:vertical;padding:15px 16px;background:#fafafa;border:1px solid #f0f0f1;
+          border-radius:9px;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--ink2);outline:none;}
+  #sqlBox:focus{border-color:var(--accent-bd);}
 
-  .panel {
-    margin-top: 22px; border: 1px solid var(--line); border-radius: 14px;
-    background: var(--panel); overflow: hidden;
-  }
-  .panel-h {
-    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-    border-bottom: 1px solid var(--line); background: var(--panel-2);
-  }
-  .panel-h .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
-  .panel-h .right { margin-left: auto; display: flex; gap: 8px; }
-  button.mini {
-    font-family: var(--mono); font-size: 12px; background: var(--panel);
-    color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
-    padding: 5px 12px; cursor: pointer;
-  }
-  button.mini:hover { border-color: var(--accent); color: var(--accent); }
-
-  textarea.sql {
-    width: 100%; min-height: 92px; resize: vertical; border: none; outline: none;
-    background: var(--code-bg); color: #b7f7df; font-family: var(--mono);
-    font-size: 13px; line-height: 1.55; padding: 14px 16px; display: block;
-  }
-  .empty-sql { color: var(--muted); font-style: italic; }
-
-  .result { overflow-x: auto; }
-  table.grid { border-collapse: collapse; width: 100%; font-size: 13px; }
-  table.grid th, table.grid td {
-    text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line);
-    white-space: nowrap; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
-  }
-  table.grid th { font-family: var(--mono); font-size: 11px; letter-spacing: .6px;
-    text-transform: uppercase; color: var(--muted); position: sticky; top: 0; background: var(--panel-2); }
-  table.grid tr:hover td { background: rgba(90,209,168,.05); }
-
-  .chart { padding: 16px; }
-  .bar-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
-  .bar-label { font-family: var(--mono); font-size: 12px; width: 130px; color: var(--muted);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bar-track { flex: 1; background: var(--panel-2); border-radius: 6px; height: 18px; overflow: hidden; }
-  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 6px; }
-  .bar-val { font-family: var(--mono); font-size: 12px; width: 70px; text-align: right; }
-
-  .err { color: var(--danger); font-family: var(--mono); font-size: 13px; padding: 14px 16px; }
-  .ok-note { color: var(--accent); font-family: var(--mono); font-size: 12px; padding: 10px 16px; }
-  .spinner { width: 15px; height: 15px; border: 2px solid var(--line);
-    border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .hidden { display: none !important; }
+  /* results */
+  .rhd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f0f0f1;}
+  .rhd .l{display:flex;align-items:center;gap:10px;}
+  .rhd .t{font-size:13px;font-weight:600;}
+  .rhd .c{font-size:11.5px;color:var(--faint2);}
+  .tbl-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;padding:11px 18px;font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#a0a0a6;
+     text-transform:uppercase;border-bottom:1px solid #f0f0f1;white-space:nowrap;}
+  td{padding:12px 18px;border-bottom:1px solid #f4f4f5;font-family:var(--mono);font-size:13px;color:var(--ink2);white-space:nowrap;}
+  tr:hover td{background:#fafafa;}
+  td.nullc{color:var(--faint2);}
+  .err{margin:0;padding:13px 16px;background:var(--redbg);border-radius:9px;color:var(--redfg);font-size:13px;}
+  .empty-main{margin-top:60px;text-align:center;color:var(--faint);}
+  .empty-main .big{font-size:18px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1c1c1f;color:#fff;
+         padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .spin{width:15px;height:15px;border:2px solid #d9d9f6;border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <div class="brand">Ops<span class="dot">·</span>Pilot</div>
-    <div class="tagline">ask your messy data in plain English</div>
-  </div>
-  <div class="pill">
-    <span class="chip"><b id="tableCount">0</b>&nbsp;tables</span>
-    <span class="chip"><span class="led off" id="claudeLed"></span><span id="claudeLabel">Claude off</span></span>
-  </div>
-</header>
-
-<main>
-  <aside>
-    <p class="section-h">Load data</p>
-    <label class="drop" id="drop">
-      <input type="file" id="fileInput" multiple accept=".csv,.parquet,.xlsx" class="hidden" />
-      <div class="big">Drag &amp; drop, or click</div>
-      <div class="sub">CSV · Excel (.xlsx) · Parquet</div>
-    </label>
-    <div id="uploadMsg" class="hint"></div>
-
-    <p class="section-h" style="margin-top:22px">Tables &amp; health</p>
-    <div id="tables"></div>
-    <div id="noTables" class="hint">No tables yet. Upload a file to profile it.</div>
-  </aside>
-
-  <section class="content">
-    <div class="ask-wrap">
-      <input class="ask" id="question" placeholder="Ask: which region had the most orders last month?" />
-      <button class="go" id="askBtn">Ask</button>
-    </div>
-    <div class="hint" id="askHint"></div>
-
-    <div class="panel">
-      <div class="panel-h">
-        <span class="lbl">Generated SQL</span>
-        <span class="right">
-          <button class="mini" id="runBtn">Run SQL ▷</button>
-        </span>
+  <header>
+    <div class="brand">
+      <div class="logo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"></path><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"></path></svg>
       </div>
-      <textarea class="sql" id="sql" placeholder="-- The generated SQL shows here. Edit it and Run SQL — this doubles as a console.
--- Try: SELECT region, COUNT(*) AS orders FROM orders GROUP BY region ORDER BY orders DESC"></textarea>
-    </div>
-
-    <div class="panel" id="resultPanel">
-      <div class="panel-h">
-        <span class="lbl">Result</span>
-        <span class="right" id="resultMeta"></span>
-      </div>
-      <div id="resultBody">
-        <div class="hint" style="padding:16px">Run a question or SQL to see results.</div>
+      <div>
+        <div class="name">Ops·Pilot</div>
+        <div class="sub">Ask your messy data in plain English</div>
       </div>
     </div>
-  </section>
-</main>
+    <div class="hbar">
+      <div class="pill" id="tablesPill"><span class="dot"></span><b id="tableCount">0</b>&nbsp;tables</div>
+      <div class="pill" id="claudePill"><span class="dot"></span><span id="claudeTxt">Claude off</span></div>
+    </div>
+  </header>
+
+  <main>
+    <aside>
+      <div class="eyebrow">Data sources</div>
+      <label class="drop" id="drop">
+        <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M12 3v13"></path><path d="m7 8 5-5 5 5"></path></svg></span>
+        <div><div class="t">Drop a file, or browse</div><div class="h">CSV · Excel (.xlsx) · Parquet</div></div>
+      </label>
+      <input type="file" id="file" multiple accept=".csv,.xlsx,.parquet" hidden />
+      <div class="imported" id="imported"></div>
+      <div class="divider"></div>
+      <div class="eyebrow">Tables &amp; health</div>
+      <div id="tables"><div class="empty-side">No tables yet. Upload a file to profile it.</div></div>
+    </aside>
+
+    <div class="pane">
+      <div class="wrap">
+        <div class="qbar">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#b4b4ba" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3-3"></path></svg>
+          <input id="q" placeholder="Ask anything — e.g. which region had the most orders?" />
+          <button class="btn" id="ask">Ask
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+        <div class="hint" id="hint">Ops·Pilot writes safe read-only SQL, runs it on DuckDB, and shows you the query.</div>
+
+        <div id="answerCard"></div>
+
+        <!-- SQL console (always available, doubles as key-free console) -->
+        <div class="card" id="sqlCard" style="display:none;">
+          <div class="sqlhd" id="sqlHd">
+            <div class="l">
+              <svg class="chev open" id="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a9aa2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              <span class="t">Generated SQL</span>
+              <span class="h">edit it and Run — this doubles as a console</span>
+            </div>
+            <button class="runbtn" id="run">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#3a3a40"><path d="M6 4l14 8-14 8z"></path></svg>
+              Run SQL
+            </button>
+          </div>
+          <div class="sqlbody" id="sqlBody">
+            <textarea id="sqlBox" spellcheck="false" placeholder="-- The generated SQL appears here. Edit it and Run.
+-- e.g. SELECT region, COUNT(*) AS orders FROM orders GROUP BY region ORDER BY orders DESC"></textarea>
+          </div>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="empty-main" id="emptyMain">
+          <div class="big">Ask your data anything.</div>
+          Drop a CSV or Excel file on the left, then ask a question — you'll get an answer and the SQL behind it.
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
 
 <script>
-const $ = (id) => document.getElementById(id);
-const api = async (path, opts) => {
-  const r = await fetch(path, opts);
-  return r.json();
-};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let claudeOn=false;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400);}
 
-async function refreshStatus() {
-  const s = await api("/api/status");
-  $("tableCount").textContent = s.tables;
-  const led = $("claudeLed"), label = $("claudeLabel");
-  if (s.claude_enabled) { led.className = "led on"; label.textContent = "Claude on"; }
-  else { led.className = "led off"; label.textContent = "Claude off"; }
-  $("askHint").textContent = s.claude_enabled
-    ? "Natural-language answers are live. The generated SQL is shown for trust."
-    : "Set ANTHROPIC_API_KEY for natural-language answers — or write SQL directly below.";
+async function refresh(){
+  try{
+    const s=await (await fetch("/api/status")).json();
+    claudeOn=s.claude_enabled;
+    $("#tableCount").textContent=s.tables;
+    $("#tablesPill").classList.toggle("dot-on", s.tables>0);
+    const cp=$("#claudePill");
+    cp.classList.toggle("dot-on", claudeOn);
+    $("#claudeTxt").textContent=claudeOn?"Claude connected":"Claude off";
+    if(s.tables>0){ const src=await (await fetch("/api/sources")).json(); renderTables(src.profiles); $("#sqlCard").style.display=""; }
+  }catch(e){ $("#claudeTxt").textContent="offline"; }
 }
 
-function badgeForCol(col) {
-  const out = [];
-  if (col.null_pct > 30) out.push(`<span class="badge bad">${Math.round(col.null_pct)}% null</span>`);
-  else if (col.null_pct > 0) out.push(`<span class="badge">${col.null_pct}% null</span>`);
-  if (col.distinct_count <= 1) out.push(`<span class="badge warn">constant</span>`);
-  return out.join("");
+function badgeFor(col){
+  if(col.distinct_count===1) return ['const','constant'];
+  if(col.null_pct>30) return ['null', col.null_pct+'% null'];
+  if(col.null_pct>0)  return ['nulllo', col.null_pct+'% null'];
+  return null;
+}
+function renderTables(profiles){
+  const box=$("#tables"); box.innerHTML="";
+  const names=Object.keys(profiles||{});
+  if(!names.length){ box.innerHTML='<div class="empty-side">No tables yet. Upload a file to profile it.</div>'; return; }
+  for(const name of names){
+    const p=profiles[name];
+    const card=document.createElement('div'); card.className='tcard';
+    const cols=p.columns.map(c=>{
+      const b=badgeFor(c);
+      return `<div class="col"><div class="l"><span class="cn">${esc(c.name)}</span><span class="ct">${esc(c.type)}</span></div>${b?`<span class="badge ${b[0]}">${esc(b[1])}</span>`:''}</div>`;
+    }).join("");
+    const dupe = p.duplicate_rows>0 ? `<span class="badge dupe" style="margin-left:8px">${p.duplicate_rows} dupes</span>` : '';
+    card.innerHTML=`<div class="hd"><div class="nm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18"></path></svg>
+        ${esc(name)}${dupe}</div>
+        <span class="mt">${p.row_count.toLocaleString()} rows · ${p.columns.length} cols</span></div>
+        <div style="padding:5px 0">${cols}</div>`;
+    box.appendChild(card);
+  }
 }
 
-function renderTables(profiles) {
-  const wrap = $("tables");
-  const names = Object.keys(profiles || {});
-  $("noTables").classList.toggle("hidden", names.length > 0);
-  wrap.innerHTML = names.map((t) => {
-    const p = profiles[t];
-    const dupBadge = p.duplicate_rows > 0
-      ? `<span class="badge bad">${p.duplicate_rows} dupes</span>` : "";
-    const cols = p.columns.map((c) => `
-      <div class="col-row">
-        <span class="col-name">${c.name}</span>
-        <span class="col-type">${c.type}</span>
-        <span class="badges">${badgeForCol(c)}</span>
-      </div>`).join("");
-    return `
-      <details class="table-card" open>
-        <summary>
-          <span class="tname">${t}</span>
-          <span class="tmeta">${p.row_count} rows · ${p.columns.length} cols ${dupBadge ? "· " : ""}${dupBadge}</span>
-        </summary>
-        <div class="cols">${cols}</div>
-      </details>`;
+// upload
+const drop=$("#drop"), file=$("#file");
+drop.onclick=()=>file.click();
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>upload(e.dataTransfer.files));
+file.addEventListener("change",e=>upload(e.target.files));
+async function upload(files){
+  if(!files||!files.length) return;
+  const fd=new FormData(); for(const f of files) fd.append("files",f);
+  const ic=drop.querySelector(".ic"); const prev=ic.innerHTML; ic.innerHTML='<div class="spin"></div>';
+  try{
+    const r=await fetch("/api/upload",{method:"POST",body:fd}); const d=await r.json();
+    if(!r.ok){ toast(d.error||d.detail||"upload failed"); }
+    else{
+      const imp=$("#imported"); imp.style.display="flex";
+      imp.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1fa463" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> ${d.tables.length} loaded · ${d.tables.map(esc).join(", ")}`;
+      toast(`Imported ${d.tables.length} table(s)`);
+    }
+  }catch(e){ toast("upload failed"); }
+  ic.innerHTML=prev; refresh();
+}
+
+// SQL console
+$("#sqlHd").addEventListener("click",e=>{ if(e.target.closest("#run")) return;
+  const body=$("#sqlBody"); const open=body.style.display!=="none";
+  body.style.display=open?"none":""; $("#chev").classList.toggle("open",!open); });
+$("#run").addEventListener("click",async()=>{
+  const sql=$("#sqlBox").value.trim(); if(!sql){toast("Write some SQL first");return;}
+  const out=await (await fetch("/api/query",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sql})})).json();
+  $("#answerCard").innerHTML=""; renderResults(out);
+});
+
+// Ask
+const q=$("#q"), ask=$("#ask");
+q.addEventListener("keydown",e=>{ if(e.key==="Enter") doAsk(); });
+ask.addEventListener("click",doAsk);
+async function doAsk(){
+  const question=q.value.trim(); if(!question) return;
+  $("#emptyMain").style.display="none"; ask.disabled=true; ask.innerHTML='<div class="spin" style="border-color:#c9c6f4;border-top-color:#fff"></div>';
+  try{
+    const out=await (await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})})).json();
+    renderAnswer(question,out);
+    if(out.sql){ $("#sqlCard").style.display=""; $("#sqlBox").value=out.sql; }
+    renderResults(out);
+  }catch(e){ renderAnswer(question,{error:"Something went wrong."}); }
+  ask.disabled=false; ask.innerHTML='Ask <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>';
+}
+
+function renderAnswer(question,out){
+  $("#emptyMain").style.display="none";
+  const card=$("#answerCard");
+  if(out.error && !out.answer){
+    card.innerHTML=`<div class="card answer"><div class="lbl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M5 12H3M21 12h-2"></path></svg><span>Answer</span></div><div class="body">${esc(out.error)}</div></div>`;
+    return;
+  }
+  const n=(out.rows||[]).length;
+  const ans=esc(out.answer||"").replace(/\[(\d+)\]/g,'<span class="cite">$1</span>');
+  card.innerHTML=`<div class="card answer">
+    <div class="lbl">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4"></path></svg>
+      <span>Answer</span><span class="meta">${n} row(s) · DuckDB</span>
+    </div>
+    <div class="body">${ans||'(no answer)'}</div>
+    ${chartHtml(out)}
+  </div>`;
+}
+
+function isNum(v){ return typeof v==="number" || (v!==null && v!=="" && !isNaN(Number(v))); }
+function chartHtml(out){
+  const cols=out.columns||[], rows=out.rows||[];
+  if(cols.length!==2 || rows.length<1 || rows.length>12) return "";
+  if(!rows.every(r=>isNum(r[1]))) return "";
+  const vals=rows.map(r=>Number(r[1])); const max=Math.max(...vals.map(Math.abs),1);
+  const bars=rows.map((r,i)=>{
+    const pct=Math.max(2,Math.abs(Number(r[1]))/max*100);
+    const fill=i===0?'#4f46e5':'#c4c2f4';
+    return `<div class="row"><span class="lab">${esc(r[0])}</span><div class="track"><div class="fill" style="width:${pct}%;background:${fill}"></div></div><span class="val">${esc(r[1])}</span></div>`;
   }).join("");
+  return `<div class="chart"><div class="ct">${esc(cols[0])} · ${esc(cols[1])}</div>${bars}</div>`;
 }
 
-async function refreshSources() {
-  const s = await api("/api/sources");
-  renderTables(s.profiles);
-  await refreshStatus();
+function renderResults(out){
+  const box=$("#results"); $("#emptyMain").style.display="none";
+  if(out.error){ box.innerHTML=`<div class="card"><div class="err">${esc(out.error)}</div></div>`; return; }
+  const cols=out.columns||[], rows=out.rows||[];
+  const head=cols.map(c=>`<th>${esc(c)}</th>`).join("");
+  const body=rows.map(r=>`<tr>${r.map(c=>`<td class="${c===null?'nullc':''}">${c===null?'∅':esc(c)}</td>`).join("")}</tr>`).join("");
+  box.innerHTML=`<div class="card"><div class="rhd"><div class="l"><span class="t">Results</span><span class="c">${rows.length} row(s) · ${cols.length} cols</span></div></div>
+    <div class="tbl-scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
-function renderResult(res) {
-  const body = $("resultBody");
-  const meta = $("resultMeta");
-  meta.innerHTML = "";
-  if (res.error) {
-    body.innerHTML = `<div class="err">⚠ ${res.error}</div>`;
-    return;
-  }
-  const cols = res.columns || [];
-  const rows = res.rows || [];
-  meta.innerHTML = `<span class="lbl">${rows.length} row(s)</span>`;
-  if (cols.length === 0) {
-    body.innerHTML = `<div class="hint" style="padding:16px">No columns returned.</div>`;
-    return;
-  }
-  let html = "";
-  // Bar chart when one text label column + one numeric column.
-  if (cols.length === 2 && rows.length > 0) {
-    const numeric = rows.every(r => typeof r[1] === "number");
-    if (numeric) {
-      const max = Math.max(...rows.map(r => Math.abs(r[1])), 1);
-      html += `<div class="chart">` + rows.slice(0, 25).map(r => {
-        const pct = (Math.abs(r[1]) / max) * 100;
-        return `<div class="bar-row">
-          <span class="bar-label" title="${r[0]}">${r[0] ?? "∅"}</span>
-          <span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span>
-          <span class="bar-val">${r[1]}</span>
-        </div>`;
-      }).join("") + `</div>`;
-    }
-  }
-  html += `<div class="result"><table class="grid"><thead><tr>` +
-    cols.map(c => `<th>${c}</th>`).join("") + `</tr></thead><tbody>` +
-    rows.map(r => `<tr>` + r.map(c =>
-      `<td title="${c ?? ""}">${c === null ? '<span class="empty-sql">∅</span>' : c}</td>`
-    ).join("") + `</tr>`).join("") +
-    `</tbody></table></div>`;
-  body.innerHTML = html;
-}
-
-function setBusy(busy, btn, labelWhenIdle) {
-  btn.disabled = busy;
-  btn.innerHTML = busy ? '<span class="spinner"></span>' : labelWhenIdle;
-}
-
-async function runSql() {
-  const sql = $("sql").value.trim();
-  if (!sql) return;
-  setBusy(true, $("runBtn"), "Run SQL ▷");
-  try {
-    const res = await api("/api/query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sql }),
-    });
-    renderResult(res);
-  } finally {
-    setBusy(false, $("runBtn"), "Run SQL ▷");
-  }
-}
-
-async function ask() {
-  const question = $("question").value.trim();
-  if (!question) return;
-  setBusy(true, $("askBtn"), "Ask");
-  try {
-    const res = await api("/api/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    $("sql").value = res.sql || "";
-    renderResult(res);
-  } finally {
-    setBusy(false, $("askBtn"), "Ask");
-  }
-}
-
-async function uploadFiles(fileList) {
-  if (!fileList || fileList.length === 0) return;
-  const fd = new FormData();
-  for (const f of fileList) fd.append("files", f);
-  $("uploadMsg").innerHTML = '<span class="spinner"></span> loading…';
-  try {
-    const res = await api("/api/upload", { method: "POST", body: fd });
-    if (res.error) {
-      $("uploadMsg").innerHTML = `<span style="color:var(--danger)">${res.error}</span>`;
-    } else {
-      const errs = (res.errors && res.errors.length) ? ` (${res.errors.length} skipped)` : "";
-      $("uploadMsg").innerHTML = `<span style="color:var(--accent)">Loaded: ${res.tables.join(", ")}${errs}</span>`;
-      renderTables(res.profiles);
-      await refreshStatus();
-    }
-  } catch (e) {
-    $("uploadMsg").innerHTML = `<span style="color:var(--danger)">Upload failed: ${e}</span>`;
-  }
-}
-
-// Wiring
-$("askBtn").addEventListener("click", ask);
-$("runBtn").addEventListener("click", runSql);
-$("question").addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
-$("sql").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) runSql(); });
-$("fileInput").addEventListener("change", (e) => uploadFiles(e.target.files));
-
-const drop = $("drop");
-["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, (e) => {
-  e.preventDefault(); drop.classList.add("over");
-}));
-["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, (e) => {
-  e.preventDefault(); drop.classList.remove("over");
-}));
-drop.addEventListener("drop", (e) => uploadFiles(e.dataTransfer.files));
-
-refreshSources();
+refresh();
 </script>
 </body>
 </html>
