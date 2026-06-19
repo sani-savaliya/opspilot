@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OpsPilot</title>
+<style>
+  :root {
+    --bg: #0c0f14;
+    --panel: #131820;
+    --panel-2: #1a212c;
+    --line: #26303d;
+    --ink: #e8edf3;
+    --muted: #8a98ab;
+    --accent: #5ad1a8;     /* mint */
+    --accent-2: #ffb454;   /* amber */
+    --danger: #ff6b6b;
+    --code-bg: #0a0d12;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background:
+      radial-gradient(900px 500px at 12% -10%, rgba(90,209,168,.10), transparent 60%),
+      radial-gradient(800px 500px at 110% 0%, rgba(255,180,84,.07), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(12,15,20,.7);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand { font-size: 22px; font-weight: 700; letter-spacing: .3px; }
+  .brand .dot { color: var(--accent); }
+  .tagline { color: var(--muted); font-size: 13px; }
+  .pill {
+    margin-left: auto; display: flex; gap: 10px; align-items: center;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .chip {
+    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--muted);
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .led { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .led.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .led.off { background: #4a5563; }
+
+  main { display: grid; grid-template-columns: 340px 1fr; gap: 0; height: calc(100% - 59px); }
+  @media (max-width: 880px) { main { grid-template-columns: 1fr; height: auto; } }
+
+  aside {
+    border-right: 1px solid var(--line);
+    padding: 18px; overflow-y: auto;
+    background: linear-gradient(180deg, rgba(26,33,44,.4), transparent 240px);
+  }
+  .section-h {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+  }
+
+  .drop {
+    border: 1.5px dashed var(--line); border-radius: 14px;
+    padding: 26px 14px; text-align: center; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+    background: var(--panel);
+  }
+  .drop:hover { border-color: var(--accent); }
+  .drop.over { border-color: var(--accent); background: rgba(90,209,168,.07); transform: scale(1.01); }
+  .drop .big { font-size: 15px; }
+  .drop .sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+
+  .table-card {
+    border: 1px solid var(--line); border-radius: 12px;
+    margin-top: 14px; overflow: hidden; background: var(--panel);
+  }
+  .table-card > summary {
+    list-style: none; cursor: pointer; padding: 11px 13px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel-2);
+  }
+  .table-card > summary::-webkit-details-marker { display: none; }
+  .tname { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  .tmeta { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .cols { padding: 6px 13px 12px; }
+  .col-row {
+    display: flex; align-items: baseline; gap: 8px; padding: 4px 0;
+    border-bottom: 1px dashed rgba(38,48,61,.6);
+  }
+  .col-row:last-child { border-bottom: none; }
+  .col-name { font-family: var(--mono); font-size: 12.5px; }
+  .col-type { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .badges { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge {
+    font-family: var(--mono); font-size: 10.5px; padding: 2px 7px;
+    border-radius: 6px; border: 1px solid var(--line); color: var(--muted);
+  }
+  .badge.warn { color: var(--accent-2); border-color: rgba(255,180,84,.4); background: rgba(255,180,84,.08); }
+  .badge.bad  { color: var(--danger); border-color: rgba(255,107,107,.4); background: rgba(255,107,107,.08); }
+
+  .content { padding: 22px 26px; overflow-y: auto; }
+  .ask-wrap { display: flex; gap: 10px; }
+  .ask {
+    flex: 1; font-family: var(--sans); font-size: 16px; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .ask:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(90,209,168,.12); }
+  button.go {
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
+    background: var(--accent); color: #04130d; border: none; border-radius: 12px;
+    padding: 0 22px; cursor: pointer; transition: filter .12s, transform .08s;
+  }
+  button.go:hover { filter: brightness(1.08); }
+  button.go:active { transform: translateY(1px); }
+  button.go:disabled { opacity: .5; cursor: default; }
+
+  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+  .panel {
+    margin-top: 22px; border: 1px solid var(--line); border-radius: 14px;
+    background: var(--panel); overflow: hidden;
+  }
+  .panel-h {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border-bottom: 1px solid var(--line); background: var(--panel-2);
+  }
+  .panel-h .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .panel-h .right { margin-left: auto; display: flex; gap: 8px; }
+  button.mini {
+    font-family: var(--mono); font-size: 12px; background: var(--panel);
+    color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 12px; cursor: pointer;
+  }
+  button.mini:hover { border-color: var(--accent); color: var(--accent); }
+
+  textarea.sql {
+    width: 100%; min-height: 92px; resize: vertical; border: none; outline: none;
+    background: var(--code-bg); color: #b7f7df; font-family: var(--mono);
+    font-size: 13px; line-height: 1.55; padding: 14px 16px; display: block;
+  }
+  .empty-sql { color: var(--muted); font-style: italic; }
+
+  .result { overflow-x: auto; }
+  table.grid { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.grid th, table.grid td {
+    text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line);
+    white-space: nowrap; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+  }
+  table.grid th { font-family: var(--mono); font-size: 11px; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--muted); position: sticky; top: 0; background: var(--panel-2); }
+  table.grid tr:hover td { background: rgba(90,209,168,.05); }
+
+  .chart { padding: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .bar-label { font-family: var(--mono); font-size: 12px; width: 130px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: var(--panel-2); border-radius: 6px; height: 18px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 6px; }
+  .bar-val { font-family: var(--mono); font-size: 12px; width: 70px; text-align: right; }
+
+  .err { color: var(--danger); font-family: var(--mono); font-size: 13px; padding: 14px 16px; }
+  .ok-note { color: var(--accent); font-family: var(--mono); font-size: 12px; padding: 10px 16px; }
+  .spinner { width: 15px; height: 15px; border: 2px solid var(--line);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">Ops<span class="dot">·</span>Pilot</div>
+    <div class="tagline">ask your messy data in plain English</div>
+  </div>
+  <div class="pill">
+    <span class="chip"><b id="tableCount">0</b>&nbsp;tables</span>
+    <span class="chip"><span class="led off" id="claudeLed"></span><span id="claudeLabel">Claude off</span></span>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <p class="section-h">Load data</p>
+    <label class="drop" id="drop">
+      <input type="file" id="fileInput" multiple accept=".csv,.parquet,.xlsx" class="hidden" />
+      <div class="big">Drag &amp; drop, or click</div>
+      <div class="sub">CSV · Excel (.xlsx) · Parquet</div>
+    </label>
+    <div id="uploadMsg" class="hint"></div>
+
+    <p class="section-h" style="margin-top:22px">Tables &amp; health</p>
+    <div id="tables"></div>
+    <div id="noTables" class="hint">No tables yet. Upload a file to profile it.</div>
+  </aside>
+
+  <section class="content">
+    <div class="ask-wrap">
+      <input class="ask" id="question" placeholder="Ask: which region had the most orders last month?" />
+      <button class="go" id="askBtn">Ask</button>
+    </div>
+    <div class="hint" id="askHint"></div>
+
+    <div class="panel">
+      <div class="panel-h">
+        <span class="lbl">Generated SQL</span>
+        <span class="right">
+          <button class="mini" id="runBtn">Run SQL ▷</button>
+        </span>
+      </div>
+      <textarea class="sql" id="sql" placeholder="-- The generated SQL shows here. Edit it and Run SQL — this doubles as a console.
+-- Try: SELECT region, COUNT(*) AS orders FROM orders GROUP BY region ORDER BY orders DESC"></textarea>
+    </div>
+
+    <div class="panel" id="resultPanel">
+      <div class="panel-h">
+        <span class="lbl">Result</span>
+        <span class="right" id="resultMeta"></span>
+      </div>
+      <div id="resultBody">
+        <div class="hint" style="padding:16px">Run a question or SQL to see results.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const api = async (path, opts) => {
+  const r = await fetch(path, opts);
+  return r.json();
+};
+
+async function refreshStatus() {
+  const s = await api("/api/status");
+  $("tableCount").textContent = s.tables;
+  const led = $("claudeLed"), label = $("claudeLabel");
+  if (s.claude_enabled) { led.className = "led on"; label.textContent = "Claude on"; }
+  else { led.className = "led off"; label.textContent = "Claude off"; }
+  $("askHint").textContent = s.claude_enabled
+    ? "Natural-language answers are live. The generated SQL is shown for trust."
+    : "Set ANTHROPIC_API_KEY for natural-language answers — or write SQL directly below.";
+}
+
+function badgeForCol(col) {
+  const out = [];
+  if (col.null_pct > 30) out.push(`<span class="badge bad">${Math.round(col.null_pct)}% null</span>`);
+  else if (col.null_pct > 0) out.push(`<span class="badge">${col.null_pct}% null</span>`);
+  if (col.distinct_count <= 1) out.push(`<span class="badge warn">constant</span>`);
+  return out.join("");
+}
+
+function renderTables(profiles) {
+  const wrap = $("tables");
+  const names = Object.keys(profiles || {});
+  $("noTables").classList.toggle("hidden", names.length > 0);
+  wrap.innerHTML = names.map((t) => {
+    const p = profiles[t];
+    const dupBadge = p.duplicate_rows > 0
+      ? `<span class="badge bad">${p.duplicate_rows} dupes</span>` : "";
+    const cols = p.columns.map((c) => `
+      <div class="col-row">
+        <span class="col-name">${c.name}</span>
+        <span class="col-type">${c.type}</span>
+        <span class="badges">${badgeForCol(c)}</span>
+      </div>`).join("");
+    return `
+      <details class="table-card" open>
+        <summary>
+          <span class="tname">${t}</span>
+          <span class="tmeta">${p.row_count} rows · ${p.columns.length} cols ${dupBadge ? "· " : ""}${dupBadge}</span>
+        </summary>
+        <div class="cols">${cols}</div>
+      </details>`;
+  }).join("");
+}
+
+async function refreshSources() {
+  const s = await api("/api/sources");
+  renderTables(s.profiles);
+  await refreshStatus();
+}
+
+function renderResult(res) {
+  const body = $("resultBody");
+  const meta = $("resultMeta");
+  meta.innerHTML = "";
+  if (res.error) {
+    body.innerHTML = `<div class="err">⚠ ${res.error}</div>`;
+    return;
+  }
+  const cols = res.columns || [];
+  const rows = res.rows || [];
+  meta.innerHTML = `<span class="lbl">${rows.length} row(s)</span>`;
+  if (cols.length === 0) {
+    body.innerHTML = `<div class="hint" style="padding:16px">No columns returned.</div>`;
+    return;
+  }
+  let html = "";
+  // Bar chart when one text label column + one numeric column.
+  if (cols.length === 2 && rows.length > 0) {
+    const numeric = rows.every(r => typeof r[1] === "number");
+    if (numeric) {
+      const max = Math.max(...rows.map(r => Math.abs(r[1])), 1);
+      html += `<div class="chart">` + rows.slice(0, 25).map(r => {
+        const pct = (Math.abs(r[1]) / max) * 100;
+        return `<div class="bar-row">
+          <span class="bar-label" title="${r[0]}">${r[0] ?? "∅"}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span>
+          <span class="bar-val">${r[1]}</span>
+        </div>`;
+      }).join("") + `</div>`;
+    }
+  }
+  html += `<div class="result"><table class="grid"><thead><tr>` +
+    cols.map(c => `<th>${c}</th>`).join("") + `</tr></thead><tbody>` +
+    rows.map(r => `<tr>` + r.map(c =>
+      `<td title="${c ?? ""}">${c === null ? '<span class="empty-sql">∅</span>' : c}</td>`
+    ).join("") + `</tr>`).join("") +
+    `</tbody></table></div>`;
+  body.innerHTML = html;
+}
+
+function setBusy(busy, btn, labelWhenIdle) {
+  btn.disabled = busy;
+  btn.innerHTML = busy ? '<span class="spinner"></span>' : labelWhenIdle;
+}
+
+async function runSql() {
+  const sql = $("sql").value.trim();
+  if (!sql) return;
+  setBusy(true, $("runBtn"), "Run SQL ▷");
+  try {
+    const res = await api("/api/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql }),
+    });
+    renderResult(res);
+  } finally {
+    setBusy(false, $("runBtn"), "Run SQL ▷");
+  }
+}
+
+async function ask() {
+  const question = $("question").value.trim();
+  if (!question) return;
+  setBusy(true, $("askBtn"), "Ask");
+  try {
+    const res = await api("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    $("sql").value = res.sql || "";
+    renderResult(res);
+  } finally {
+    setBusy(false, $("askBtn"), "Ask");
+  }
+}
+
+async function uploadFiles(fileList) {
+  if (!fileList || fileList.length === 0) return;
+  const fd = new FormData();
+  for (const f of fileList) fd.append("files", f);
+  $("uploadMsg").innerHTML = '<span class="spinner"></span> loading…';
+  try {
+    const res = await api("/api/upload", { method: "POST", body: fd });
+    if (res.error) {
+      $("uploadMsg").innerHTML = `<span style="color:var(--danger)">${res.error}</span>`;
+    } else {
+      const errs = (res.errors && res.errors.length) ? ` (${res.errors.length} skipped)` : "";
+      $("uploadMsg").innerHTML = `<span style="color:var(--accent)">Loaded: ${res.tables.join(", ")}${errs}</span>`;
+      renderTables(res.profiles);
+      await refreshStatus();
+    }
+  } catch (e) {
+    $("uploadMsg").innerHTML = `<span style="color:var(--danger)">Upload failed: ${e}</span>`;
+  }
+}
+
+// Wiring
+$("askBtn").addEventListener("click", ask);
+$("runBtn").addEventListener("click", runSql);
+$("question").addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+$("sql").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) runSql(); });
+$("fileInput").addEventListener("change", (e) => uploadFiles(e.target.files));
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, (e) => {
+  e.preventDefault(); drop.classList.add("over");
+}));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, (e) => {
+  e.preventDefault(); drop.classList.remove("over");
+}));
+drop.addEventListener("drop", (e) => uploadFiles(e.dataTransfer.files));
+
+refreshSources();
+</script>
+</body>
+</html>

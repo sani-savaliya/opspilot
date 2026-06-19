@@ -1,0 +1,16 @@
+customer_id,name,plan,signup_date
+1,Acme Corp,Enterprise,2025-01-15
+2,Bluebird LLC,Pro,2025-02-20
+3,Cobalt Inc,Enterprise,2025-03-01
+4,Delta Foods,Pro,2025-03-12
+5,Evergreen,Free,2025-04-05
+6,Foxtrot Ltd,Free,2025-04-18
+7,Gravity Co,Pro,2025-05-01
+8,Harbor Group,Free,2025-05-09
+9,Ionic Labs,Enterprise,2025-05-15
+10,Jupiter Mfg,Pro,2025-06-02
+11,Kestrel,Enterprise,2025-06-10
+12,Lumen,Free,2025-06-21
+13,Maple Retail,Pro,2025-07-03
+14,Nimbus,Free,2025-07-14
+15,Orchid Health,Enterprise,2025-07-25

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opspilot"
+version = "0.1.0"
+description = "Deploy-in-a-day natural-language analytics over a customer's messy CSV/Excel/Parquet exports, powered by DuckDB + Claude."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Sunny" }]
+keywords = ["duckdb", "analytics", "nl2sql", "fastapi", "forward-deployed"]
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: Apache Software License",
+    "Framework :: FastAPI",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "duckdb",
+    "pandas",
+    "openpyxl",
+    "numpy",
+    "python-multipart",
+    "anthropic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+
+[project.scripts]
+opspilot = "opspilot.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/sani-savaliya/opspilot"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opspilot"]

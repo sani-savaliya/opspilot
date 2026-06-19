@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtualenv
+.venv/
+venv/
+
+# OpsPilot runtime data
+data/
+uploads/
+*.duckdb
+*.duckdb.wal
+
+# Env / secrets
+.env
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
