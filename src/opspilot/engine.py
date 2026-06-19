@@ -2,7 +2,7 @@
 
 ``run_sql`` validates SELECT-only, enforces a row cap, runs on the read-only
 connection, and returns JSON-safe columns/rows. ``ask`` builds schema context,
-asks Claude, runs the SQL, and makes one repair attempt if the query errors.
+asks the configured LLM, runs the SQL, and makes one repair attempt on error.
 """
 
 from __future__ import annotations
@@ -51,11 +51,11 @@ def run_sql(sql: str) -> dict[str, Any]:
 
 
 def ask(question: str) -> dict[str, Any]:
-    """Answer a natural-language question via Claude-generated SQL.
+    """Answer a natural-language question via LLM-generated SQL.
 
     Returns {answer?, sql, columns, rows, error}. Without an API key, returns a
-    graceful pointer to the SQL console. Makes one Claude repair attempt if the
-    first generated query errors.
+    graceful pointer to the SQL console. Makes one repair attempt if the first
+    generated query errors.
     """
     base: dict[str, Any] = {
         "answer": None,
@@ -69,11 +69,8 @@ def ask(question: str) -> dict[str, Any]:
         base["error"] = "Please enter a question."
         return base
 
-    if not nl2sql.claude_enabled():
-        base["error"] = (
-            "Set ANTHROPIC_API_KEY for natural-language questions — "
-            "or use the SQL console."
-        )
+    if not nl2sql.llm_enabled():
+        base["error"] = nl2sql.NO_KEY_MESSAGE
         return base
 
     profiles = profile_all()

@@ -1,8 +1,9 @@
 # OpsPilot — project notes for Claude
 
 Deploy-in-a-day natural-language analytics over messy customer data, on
-DuckDB + Claude. Works key-free as a SQL console + profiler; NL→SQL lights up
-with `ANTHROPIC_API_KEY`.
+DuckDB + any OpenAI-compatible LLM (NVIDIA NIM, Groq, Gemini, OpenAI — all have
+free tiers). Works key-free as a SQL console + profiler; NL→SQL lights up when
+`OPSPILOT_LLM_API_KEY` (+ optional `OPSPILOT_LLM_PROVIDER`) is set.
 
 ## Build & test
 
@@ -22,7 +23,7 @@ Boot check: `GET /api/status` → `{"tables": int, "claude_enabled": bool}`.
 - `src/opspilot/ingest.py` — CSV (`read_csv_auto`), Parquet (`read_parquet`), Excel (pandas per-sheet). `IngestError` on unsupported types. Table names sanitized from filenames.
 - `src/opspilot/profile.py` — row count, per-column null_pct/distinct/3 samples, data-health (high-null >30%, constant, dup rows).
 - `src/opspilot/sqlsafe.py` — `validate_select` (single SELECT/WITH, forbidden-keyword whole-word reject), `enforce_limit` (wrap + LIMIT 1000). `UnsafeSQLError` on violation. Defense-in-depth on top of read-only conn.
-- `src/opspilot/nl2sql.py` — Anthropic SDK, model **`claude-opus-4-8`** (do NOT change; do NOT pass temperature/top_p/budget_tokens — they 400). Strips ```sql fences.
+- `src/opspilot/nl2sql.py` — **provider-agnostic** via the OpenAI SDK pointed at any OpenAI-compatible endpoint. `PRESETS` map provider→(base_url, default model, fallback key envs) for nvidia/groq/gemini/openrouter/openai/custom. Config via `OPSPILOT_LLM_PROVIDER` / `OPSPILOT_LLM_API_KEY` / `OPSPILOT_LLM_MODEL` / `OPSPILOT_LLM_BASE_URL`. `llm_enabled()` gates the NL path; default provider is `nvidia`. Strips ```sql fences; `temperature=0`.
 - `src/opspilot/engine.py` — `run_sql` (validate→cap→execute, JSON-safe rows), `ask` (schema→Claude→run, one repair attempt).
 - `src/opspilot/app.py` — FastAPI: `/api/upload`, `/api/sources`, `/api/status`, `/api/query`, `/api/ask`, `/api/reset`, `/`.
 - `src/opspilot/static/index.html` — single-file light UI (Geist font, indigo accent): table-health sidebar, NL Answer hero with auto bar-chart, collapsible Generated-SQL console, dynamic results table. Vanilla JS against the `/api/*` endpoints.

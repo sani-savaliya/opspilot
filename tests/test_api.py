@@ -15,7 +15,7 @@ def test_status_and_sources_empty():
     c = _client()
     s = c.get("/api/status").json()
     assert s["tables"] == 0
-    assert s["claude_enabled"] is False
+    assert s["ai_enabled"] is False
     assert c.get("/api/sources").json()["tables"] == []
 
 
@@ -47,7 +47,7 @@ def test_ask_without_key():
     c = _client()
     c.post("/api/upload", files={"files": ("orders.csv", ORDERS.read_bytes(), "text/csv")})
     out = c.post("/api/ask", json={"question": "how many orders?"}).json()
-    assert "ANTHROPIC_API_KEY" in out["error"]
+    assert "OPSPILOT_LLM_API_KEY" in out["error"]
 
 
 def test_unsupported_upload_rejected():

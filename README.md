@@ -5,12 +5,13 @@
 A Forward-Deployed-Engineer flagship. Point it at a customer's exports — CSV,
 Excel, Parquet — and OpsPilot auto-loads them into DuckDB, profiles the schema
 and data health, and lets non-technical ops users ask questions in plain
-English. Claude generates a **safe, read-only** SQL query, OpsPilot runs it on
+English. An LLM generates a **safe, read-only** SQL query, OpsPilot runs it on
 DuckDB, and returns the answer as a table + chart — **always showing the
 generated SQL, so the user can trust and verify it.**
 
 It works **key-free** as a SQL console + data profiler. Natural-language answers
-light up the moment `ANTHROPIC_API_KEY` is set.
+light up with **any OpenAI-compatible provider** — NVIDIA NIM, Groq, Google
+Gemini, OpenRouter, or OpenAI (all have free tiers).
 
 ---
 
@@ -71,22 +72,35 @@ opspilot
 Then open the URL, drag in `examples/orders.csv` and `examples/customers.csv`,
 and start asking questions (or writing SQL).
 
-### Works key-free, better with Claude
+### Works key-free, better with a (free) LLM key
 
 Without a key, OpsPilot is a SQL console + profiler. To enable plain-English
-questions, set an Anthropic API key before launching:
+questions, set **one** OpenAI-compatible provider. Grab a free key, pick the
+provider, and go:
 
 ```bash
 # Windows (PowerShell)
-$env:ANTHROPIC_API_KEY = "sk-ant-..."
-# macOS / Linux
-export ANTHROPIC_API_KEY="sk-ant-..."
+$env:OPSPILOT_LLM_PROVIDER = "nvidia"      # nvidia | groq | gemini | openrouter | openai
+$env:OPSPILOT_LLM_API_KEY  = "nvapi-..."   # your free key
+opspilot
 
+# macOS / Linux
+export OPSPILOT_LLM_PROVIDER="nvidia"
+export OPSPILOT_LLM_API_KEY="nvapi-..."
 opspilot
 ```
 
-The status pill in the header shows whether Claude is on. Model:
-`claude-opus-4-8` via the official Anthropic SDK.
+| Provider | `OPSPILOT_LLM_PROVIDER` | Free key from | Default model |
+|---|---|---|---|
+| NVIDIA NIM | `nvidia` | build.nvidia.com | `meta/llama-3.3-70b-instruct` |
+| Groq | `groq` | console.groq.com | `llama-3.3-70b-versatile` |
+| Google Gemini | `gemini` | aistudio.google.com | `gemini-2.0-flash` |
+| OpenRouter | `openrouter` | openrouter.ai | `meta-llama/llama-3.3-70b-instruct:free` |
+| OpenAI | `openai` | platform.openai.com | `gpt-4o-mini` |
+
+Override the model with `OPSPILOT_LLM_MODEL`. For any other OpenAI-compatible
+endpoint, set `OPSPILOT_LLM_PROVIDER=custom` plus `OPSPILOT_LLM_BASE_URL` and
+`OPSPILOT_LLM_MODEL`. The header pill shows the active provider when connected.
 
 ---
 
@@ -94,7 +108,9 @@ The status pill in the header shows whether Claude is on. Model:
 
 ```bash
 docker build -t opspilot .
-docker run -p 8050:8050 -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" opspilot
+docker run -p 8050:8050 \
+  -e OPSPILOT_LLM_PROVIDER="$OPSPILOT_LLM_PROVIDER" \
+  -e OPSPILOT_LLM_API_KEY="$OPSPILOT_LLM_API_KEY" opspilot
 ```
 
 That's the "deploy anywhere" story — a single self-contained container the
@@ -132,9 +148,9 @@ columns, and the duplicate rows up front.
 
 ## Honesty
 
-Retrieval, profiling, and the SQL console are real and key-free. The
-natural-language → SQL step needs an Anthropic API key — without it, OpsPilot
-degrades gracefully to the console rather than pretending. No overclaiming.
+Profiling and the SQL console are real and key-free. The natural-language → SQL
+step needs an LLM key (any free provider above) — without it, OpsPilot degrades
+gracefully to the console rather than pretending. No overclaiming.
 
 ---
 
@@ -146,11 +162,11 @@ src/opspilot/
   ingest.py    Load CSV / Parquet / Excel into tables
   profile.py   Schema + data-health profiling
   sqlsafe.py   SELECT-only validation + row cap
-  nl2sql.py    Claude (claude-opus-4-8) NL→SQL via the official SDK
+  nl2sql.py    Provider-agnostic NL→SQL (OpenAI SDK → any compatible endpoint)
   engine.py    run_sql + ask (with one repair attempt)
   app.py       FastAPI endpoints
   cli.py       `opspilot` entry point
-  static/      Single-file dark UI
+  static/      Single-file light UI
 tests/         pytest suite (exercises the no-key paths)
 examples/      Sample messy data
 docs/PRD.md    Product requirements

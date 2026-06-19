@@ -11,11 +11,20 @@ CSV_TEXT = (
 )
 
 
+_LLM_KEYS = (
+    "OPSPILOT_LLM_API_KEY", "OPSPILOT_LLM_PROVIDER", "OPSPILOT_LLM_MODEL",
+    "OPSPILOT_LLM_BASE_URL", "NVIDIA_API_KEY", "NGC_API_KEY", "GROQ_API_KEY",
+    "GEMINI_API_KEY", "GOOGLE_API_KEY", "OPENROUTER_API_KEY", "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+)
+
+
 @pytest.fixture(autouse=True)
 def _isolate(monkeypatch, tmp_path):
-    """Isolate the DuckDB file per test and never hit the real Claude API."""
+    """Isolate the DuckDB file per test and never hit any real LLM provider."""
     monkeypatch.setenv("OPSPILOT_DB_PATH", str(tmp_path / "test.duckdb"))
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    for key in _LLM_KEYS:
+        monkeypatch.delenv(key, raising=False)
     yield
 
 

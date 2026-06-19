@@ -29,4 +29,4 @@ def test_ask_without_key_is_graceful(orders_csv):
     ingest_file("orders.csv", orders_csv)
     out = ask("how many orders are there?")
     assert out["sql"] is None
-    assert "ANTHROPIC_API_KEY" in out["error"]
+    assert "OPSPILOT_LLM_API_KEY" in out["error"]

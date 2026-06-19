@@ -224,18 +224,18 @@
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let claudeOn=false;
+let aiOn=false;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400);}
 
 async function refresh(){
   try{
     const s=await (await fetch("/api/status")).json();
-    claudeOn=s.claude_enabled;
+    aiOn=s.ai_enabled;
     $("#tableCount").textContent=s.tables;
     $("#tablesPill").classList.toggle("dot-on", s.tables>0);
     const cp=$("#claudePill");
-    cp.classList.toggle("dot-on", claudeOn);
-    $("#claudeTxt").textContent=claudeOn?"Claude connected":"Claude off";
+    cp.classList.toggle("dot-on", aiOn);
+    $("#claudeTxt").textContent=aiOn?((s.provider||"AI")+" connected"):"AI off";
     if(s.tables>0){ const src=await (await fetch("/api/sources")).json(); renderTables(src.profiles); $("#sqlCard").style.display=""; }
   }catch(e){ $("#claudeTxt").textContent="offline"; }
 }

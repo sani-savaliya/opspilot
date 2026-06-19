@@ -2,8 +2,8 @@
 
 Endpoints:
 - POST /api/upload   multipart files -> ingest -> {tables, profiles}
-- GET  /api/sources  -> {tables, profiles, health, claude_enabled}
-- GET  /api/status   -> {tables, claude_enabled}
+- GET  /api/sources  -> {tables, profiles, health, ai_enabled, provider}
+- GET  /api/status   -> {tables, ai_enabled, provider}
 - POST /api/query    {sql}      -> run_sql (key-free SQL console)
 - POST /api/ask      {question} -> engine.ask (needs key)
 - POST /api/reset    -> drop all tables / delete the duckdb file
@@ -20,7 +20,7 @@ from pydantic import BaseModel
 
 from . import db, engine
 from .ingest import IngestError, ingest_file
-from .nl2sql import claude_enabled
+from .nl2sql import llm_enabled, provider_label
 from .profile import profile_all
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -28,7 +28,7 @@ STATIC_DIR = Path(__file__).parent / "static"
 app = FastAPI(
     title="OpsPilot",
     version="0.1.0",
-    description="Natural-language analytics over messy data, on DuckDB + Claude.",
+    description="Natural-language analytics over messy data, on DuckDB + any LLM.",
 )
 
 
@@ -51,7 +51,11 @@ def _health_from_profiles(profiles: dict) -> list[dict]:
 
 @app.get("/api/status")
 def status() -> dict:
-    return {"tables": len(db.list_tables()), "claude_enabled": claude_enabled()}
+    return {
+        "tables": len(db.list_tables()),
+        "ai_enabled": llm_enabled(),
+        "provider": provider_label(),
+    }
 
 
 @app.get("/api/sources")
@@ -61,7 +65,8 @@ def sources() -> dict:
         "tables": db.list_tables(),
         "profiles": profiles,
         "health": _health_from_profiles(profiles),
-        "claude_enabled": claude_enabled(),
+        "ai_enabled": llm_enabled(),
+        "provider": provider_label(),
     }
 
 
