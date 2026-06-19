@@ -12,5 +12,5 @@ RUN mkdir -p data uploads
 
 EXPOSE 8050
 
-# Deploy-anywhere entrypoint.
-CMD ["uvicorn", "opspilot.app:app", "--host", "0.0.0.0", "--port", "8050"]
+# Deploy-anywhere entrypoint. Cloud hosts inject $PORT; default to 8050 locally.
+CMD ["sh", "-c", "uvicorn opspilot.app:app --host 0.0.0.0 --port ${PORT:-8050}"]

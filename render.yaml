@@ -1,0 +1,16 @@
+# One-click deploy to Render (https://render.com) — free tier, Docker, public URL.
+# In Render: New → Blueprint → connect this repo. It reads this file.
+# Then set OPSPILOT_LLM_API_KEY (and OPSPILOT_LLM_PROVIDER) under Environment.
+services:
+  - type: web
+    name: opspilot
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/status
+    autoDeploy: true
+    envVars:
+      - key: OPSPILOT_LLM_PROVIDER
+        value: nvidia            # nvidia | groq | gemini | openrouter | openai
+      - key: OPSPILOT_LLM_API_KEY
+        sync: false              # set this secret in the Render dashboard
